@@ -1,0 +1,17 @@
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    PsychedCms\Taxonomy\:
+        resource: '../src/'
+        exclude:
+            - '../src/Entity/'
+            - '../src/PsychedCmsTaxonomyBundle.php'
+
+    PsychedCms\Taxonomy\Repository\TaxonomyRepositoryInterface:
+        alias: PsychedCms\Taxonomy\Repository\TaxonomyRepository
+
+    PsychedCms\Taxonomy\Filter\TaxonomySlugFilter:
+        tags:
+            - { name: 'api_platform.filter' }
