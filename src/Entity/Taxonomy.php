@@ -18,6 +18,7 @@ use Gedmo\Mapping\Annotation as Gedmo;
 use PsychedCms\Core\Attribute\Field\TextField;
 use PsychedCms\Taxonomy\Repository\TaxonomyRepository;
 use Symfony\Component\Serializer\Attribute\SerializedName;
+use Symfony\Component\Uid\Ulid;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: TaxonomyRepository::class)]
@@ -34,10 +35,11 @@ class Taxonomy implements TaxonomyTermInterface
     use TaxonomyTermTrait;
 
     #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
+    #[ORM\Column(type: 'ulid', unique: true)]
+    #[ORM\GeneratedValue(strategy: 'CUSTOM')]
+    #[ORM\CustomIdGenerator(class: 'doctrine.ulid_generator')]
     #[ApiProperty(identifier: false, readable: false)]
-    private ?int $id = null;
+    private ?Ulid $id = null;
 
     #[ORM\Column(length: 64)]
     #[Assert\NotBlank]
@@ -48,12 +50,17 @@ class Taxonomy implements TaxonomyTermInterface
      * Slug serves as the API identifier (cf. standard backend/api.md). Combined
      * with `type` it is the natural key for deduplication; the `(type, slug)`
      * unique index keeps integrity at the DB level.
+     *
+     * Translatable so each locale can expose its own URL-friendly form
+     * (e.g. `rock-psychedelique` vs `psychedelic-rock`). Lookups by the
+     * translated slug are resolved by `TranslatedSlugItemProvider`.
      */
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank]
     #[Assert\Length(max: 255)]
     #[Assert\Regex(pattern: '/^[a-z0-9]+(?:-[a-z0-9]+)*$/')]
     #[ApiProperty(identifier: true)]
+    #[Gedmo\Translatable]
     private ?string $slug = null;
 
     #[ORM\Column(length: 255)]
@@ -102,7 +109,7 @@ class Taxonomy implements TaxonomyTermInterface
         return $this;
     }
 
-    public function getId(): ?int
+    public function getId(): ?Ulid
     {
         return $this->id;
     }
